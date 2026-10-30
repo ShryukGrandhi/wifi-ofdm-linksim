@@ -1,0 +1,17 @@
+{
+  "name": "wifi-ofdm-linksim",
+  "language": "MATLAB",
+  "tech": ["MATLAB", "OFDM", "802.11a PHY", "Viterbi decoding", "Channel estimation", "GNU Octave"],
+  "targets": ["Matlab", "Wireless systems engineering", "Digital communications / PHY simulation", "Link-level performance analysis"],
+  "bullets": [
+    "Built an 802.11a OFDM PHY link simulator in MATLAB: K=7 punctured convolutional code, Gray QAM, STF/LTF sync, LS channel estimation, pilot tracking",
+    "Wrote a batched soft-decision Viterbi decoder in MATLAB sharing one trellis loop across packets: 17.6x faster than per-packet decoding (0.96 vs 0.05 Mbit/s)",
+    "Measured required SNR for 10% PER over all 8 MCS in AWGN and Rayleigh multipath; blind sync/estimation lost 1-2 dB vs genie; uncoded BER within 3.4% of theory"
+  ],
+  "summary": {
+    "what": "A MATLAB/Octave simulator of an 802.11a-style OFDM link: transmitter, multipath/CFO/AWGN channel and a blind receiver. It measures BER, packet error rate, required SNR per MCS and sync accuracy.",
+    "how": "Toolbox-free MATLAB modules for each PHY block: scrambler, convolutional encoder with puncturing, interleaver, QAM mapper with max-log LLR demapper, OFDM modem, Schmidl-Cox STF and LTF cross-correlation sync, LS channel estimate and pilot phase tracking. A soft Viterbi decoder is vectorised across packets. Tests check against known values from the standard and against theory, and CI runs them on GNU Octave.",
+    "hardest": "Getting a blind receiver to decode reliably. Packets were losing the last few bits at high SNR. The cause was that scrambled pad bits leave the encoder outside state 0, so the Viterbi traceback has to start at the tail, not at the end of the stream. A regression test now reproduces it.",
+    "say": "I built an 802.11a-style OFDM link simulator in MATLAB, from scrambling and convolutional coding through synchronisation, channel estimation and soft Viterbi decoding. Over multipath it needs 7 dB for the 6 Mb/s mode and 24 dB for 54 Mb/s at 10% PER, and the blind receiver is within 1-2 dB of a genie receiver. Vectorising the Viterbi decoder across packets made it 17.6x faster in the interpreter."
+  }
+}
