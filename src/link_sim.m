@@ -4,10 +4,12 @@ function res = link_sim(mcs_idx, snr_db, chan, npkts, psdu_bytes, opts)
 %     mcs_idx    1..8 (see MCS_TABLE)
 %     snr_db     vector of SNRs (dB, per time-domain sample)
 %     chan       struct passed to CHANNEL_TDL (snr_db is overwritten);
-%                lead is randomised per packet if chan.lead_max is set
+%                lead is randomised per packet if chan.lead_max is set,
+%                CFO is uniform in +-chan.cfo_max_hz if that is set
 %     npkts      packets per SNR point
 %     psdu_bytes payload size
-%     opts       passed to PHY_RX_FRONT
+%     opts       passed to PHY_RX_FRONT; opts.genie_rx = true gives the
+%                receiver the true timing, channel and noise power
 %   res fields: snr_db, per, ber, npkts, bit_errors, pkt_errors
 %
 %   Each packet gets a fresh random payload, scrambler seed, fading
@@ -41,8 +43,16 @@ for i = 1:numel(snr_db)
             c.lead = floor(rand * (chan.lead_max + 1));
             c = rmfield(c, 'lead_max');
         end
-        r = channel_tdl(x, c);
-        llr(:, k) = phy_rx_front(r, mcs, psdu_bytes, opts);
+        if isfield(chan, 'cfo_max_hz')
+            c.cfo_hz = (2 * rand - 1) * chan.cfo_max_hz;
+            c = rmfield(c, 'cfo_max_hz');
+        end
+        [r, ch] = channel_tdl(x, c);
+        o = opts;
+        if isfield(opts, 'genie_rx') && opts.genie_rx
+            o.genie = ch;
+        end
+        llr(:, k) = phy_rx_front(r, mcs, psdu_bytes, o);
         tx(:, k) = bits;
     end
     rx = phy_rx_decode(llr, psdu_bytes);

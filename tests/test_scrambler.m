@@ -22,6 +22,15 @@ rs = scrambler_seed_from_service(tx(1:7));
 rx = scrambler(tx(8:end), rs);
 assert(isequal(rx, data(8:end)), 'seed recovery from SERVICE failed');
 
+% returned state continues the sequence across calls (streaming)
+long = double(rand(300, 1) > 0.5);
+[a, st2] = scrambler(long(1:130), st);
+b = scrambler(long(131:end), st2);
+assert(isequal([a; b], scrambler(long, st)), 'state hand-off between calls broken');
+[~, st3] = scrambler(zeros(3, 1), st);           % fewer than 7 bits
+full = scrambler(long, st);
+assert(isequal(scrambler(long(4:end), st3), full(4:end)), 'short-call state wrong');
+
 threw = false;
 try
     scrambler(1, zeros(7, 1));

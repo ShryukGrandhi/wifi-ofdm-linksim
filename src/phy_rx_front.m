@@ -6,8 +6,9 @@ function [llr, info] = phy_rx_front(r, mcs, psdu_bytes, opts)
 %   opts fields (optional):
 %     search    samples to search for the packet start (default 400)
 %     backoff   FFT window advance into the CP in samples (default 4)
-%     genie     struct with fields start, h, n0 to bypass sync/estimation
-%               (used by tests to isolate stages)
+%     genie     struct with fields start, h, n0 and optionally cfo (cycles
+%               per sample), e.g. the second output of CHANNEL_TDL, to
+%               bypass sync and estimation (isolates those stages)
 %     pilot_track  common phase tracking from pilots (default true)
 if nargin < 4
     opts = struct();
@@ -33,6 +34,10 @@ if isempty(opts.genie)
 else
     ltf_start = opts.genie.start + 192 - opts.backoff;
     cfo = 0;
+    if isfield(opts.genie, 'cfo')
+        cfo = opts.genie.cfo;
+        r = r .* exp(-1i * 2 * pi * cfo * n);
+    end
 end
 
 data_start = ltf_start + 128;

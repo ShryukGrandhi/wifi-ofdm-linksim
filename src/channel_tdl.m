@@ -39,6 +39,7 @@ r = y + sqrt(n0 / 2) * (randn(size(y)) + 1i * randn(size(y)));
 ch.h = h;
 ch.n0 = n0;
 ch.start = cfg.lead + 1;
+ch.cfo = cfg.cfo_hz / p.fs;          % cycles per sample
 end
 
 function cfg = fill_defaults(cfg)
